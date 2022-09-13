@@ -21,6 +21,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingStart="8dp"
+        android:gravity="center"
         android:paddingTop="8dp"
         android:paddingEnd="8dp"
         android:paddingBottom="8dp">
@@ -48,6 +49,15 @@
             android:layout_marginEnd="4dp"
             android:layout_weight="1"
             android:text="表单校验" />
+
+        <Button
+            android:id="@+id/btn_viewonly"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:text="只读" />
+
     </LinearLayout>
 
 </LinearLayout>

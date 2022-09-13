@@ -8,7 +8,16 @@ package com.raedev.forms
  */
 enum class FormItemType {
 
+    /**
+     * 自动推断类型
+     */
+    Auto,
+
+
     EditText,
 
     NumberEditText,
+
+    GroupTitle,
+
 }

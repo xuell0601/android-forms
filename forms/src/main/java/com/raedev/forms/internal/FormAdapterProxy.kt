@@ -38,8 +38,18 @@ interface FormAdapterProxy {
     fun onFormItemRemoved(removeItem: FormItem?, index: Int, count: Int)
 
     /**
+     * 更新单个表单
+     */
+    fun onFormItemUpdated(index: Int)
+
+    /**
      * 表单发生错误，一般忽略即可，也可以打Log看日志
      * @param message 错误信息
      */
     fun onFormError(message: String)
+
+    /**
+     * 刷新可见的表单项
+     */
+    fun refreshVisibleItems()
 }

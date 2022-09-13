@@ -4,11 +4,13 @@ import android.annotation.SuppressLint
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.raedev.forms.internal.FormAdapterProxy
 import com.raedev.forms.items.FormItem
 import com.raedev.forms.listener.FormViewHolder
 import java.lang.ref.WeakReference
+import kotlin.math.max
 
 /**
  * RecycleView 表单适配器
@@ -18,6 +20,10 @@ import java.lang.ref.WeakReference
  */
 class FormGroupAdapter(val formGroup: FormGroup = FormGroup()) :
     RecyclerView.Adapter<FormViewHolder>(), FormAdapterProxy {
+
+    companion object {
+        private const val TAG = "RAE.FormGroupAdapter"
+    }
 
     /** viewType和索引之间的对应关系 */
     private val viewTypePositionMap = mutableMapOf<Int, Int>()
@@ -54,7 +60,7 @@ class FormGroupAdapter(val formGroup: FormGroup = FormGroup()) :
 
     override fun onBindViewHolder(holder: FormViewHolder, position: Int) {
         val item = formGroup[position]
-        item.onBindViewHolder(holder)
+        item.onBindViewHolderOnAdapter(holder)
     }
 
     override fun onViewRecycled(holder: FormViewHolder) {
@@ -101,19 +107,39 @@ class FormGroupAdapter(val formGroup: FormGroup = FormGroup()) :
     @SuppressLint("NotifyDataSetChanged")
     override fun onNeedRefresh() {
         if (canRefresh()) notifyDataSetChanged()
+        Log.d(TAG, "onNeedRefresh ")
     }
 
     override fun onFormItemInserted(insertItem: FormItem?, index: Int) {
-        if (canRefresh()) notifyItemInserted(index)
+        if (!canRefresh()) return
+//        Log.d(TAG, "onFormItemInserted:$index")
+        notifyItemInserted(index)
     }
 
     override fun onFormItemRemoved(removeItem: FormItem?, index: Int, count: Int) {
         if (!canRefresh()) return
         if (count > 0) notifyItemRangeRemoved(index, count) else notifyItemRemoved(index)
+        Log.d(TAG, "onFormItemRemoved:$index ")
+    }
+
+    override fun onFormItemUpdated(index: Int) {
+        if (!canRefresh()) return
+        this.notifyItemChanged(index)
+        Log.d(TAG, "onFormItemUpdated:$index ")
     }
 
     override fun onFormError(message: String) {
-        Log.e("FormGroup", message)
+        Log.d(TAG, message)
+    }
+
+    override fun refreshVisibleItems() {
+        if (!canRefresh()) return
+        val layoutManager = getRecyclerView()!!.layoutManager as LinearLayoutManager
+        val first = layoutManager.findFirstVisibleItemPosition()
+        val last = layoutManager.findLastVisibleItemPosition()
+        val count = max(1, last - first)
+        notifyItemRangeChanged(first, count)
+        Log.d(TAG, "refreshVisibleItems")
     }
 
     // endregion

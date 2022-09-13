@@ -1,14 +1,16 @@
 package com.raedev.forms.internal.binder
 
-import com.raedev.forms.FormItemType
+import com.raedev.forms.FormField
 import java.lang.reflect.Field
 import kotlin.reflect.KClass
 
 internal data class FieldInfo(
     val field: Field,
-    val label: String,
-    val type: FormItemType,
-    val returnType: KClass<*>,
-    val required: Boolean,
+    val formField: FormField,
     var value: String?,
+    val returnType: KClass<*>,
+//    val label: String,
+//    val type: FormItemType,
+//    val required: Boolean,
+//    var unit: String?,
 )

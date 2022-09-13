@@ -4,10 +4,15 @@
 
     <!-- 错误颜色 -->
     <color name="form_error_primary">#FFCC0000</color>
+    <!-- 表单主颜色 -->
+    <color name="form_primary">#03A9F4</color>
     <!-- 标题主颜色 -->
     <color name="form_title_primary">#000000</color>
     <!-- 表单值主颜色 -->
     <color name="form_value_primary">#666666</color>
+    <!-- 表单提示主颜色 -->
     <color name="form_hint_primary">#BFBFBF</color>
+    <!-- 表单背景颜色 -->
+    <color name="form_background_primary">#F5F5F5</color>
 
 </resources>

@@ -8,7 +8,7 @@ import com.raedev.forms.items.FormItem
  * @date 2022/09/02
  * @copyright Copyright (c) https://github.com/raedev All rights reserved.
  */
-class FormItemList : ArrayList<FormItem>() {
+internal class FormItemList : ArrayList<FormItem>() {
 
     /**
      * 转换为Map对象
@@ -25,11 +25,27 @@ class FormItemList : ArrayList<FormItem>() {
     override fun add(element: FormItem): Boolean {
         // 不重复添加
         if (this.contains(element)) return false
-        return super.add(element).also { updateIndex() }
+        return super.add(element).also {
+            updateIndex()
+        }
+    }
+
+    override fun add(index: Int, element: FormItem) {
+        // 不重复添加
+        if (this.contains(element)) return
+        super.add(index, element)
+        updateIndex()
+    }
+
+    override fun remove(element: FormItem): Boolean {
+        return super.remove(element).also {
+            element.onFormItemRemoved()
+            updateIndex()
+        }
     }
 
     fun remove(name: String): Boolean {
-        return get(name)?.let { this.remove(it).also { updateIndex() } } ?: false
+        return get(name)?.let { this.remove(it) } ?: false
     }
 
     fun get(name: String): FormItem? {
@@ -43,5 +59,23 @@ class FormItemList : ArrayList<FormItem>() {
         this.forEachIndexed { index, formItem ->
             formItem.position = index
         }
+    }
+
+    /**
+     * 找父亲的子节点
+     */
+    fun findChildrenIndex(parent: FormItem): Int {
+        val parentIndex = indexOf(parent)
+        // 表单组中没有这个父表单
+        if (parentIndex < 0) return -1
+        // 找到子节点：节点是一个个添加到父表单后面的，找到最后一个即可
+        var childrenCount = 0
+        this.forEachIndexed { index, formItem ->
+            if (formItem.parent == parent) {
+                childrenCount++
+            }
+        }
+
+        return parentIndex + childrenCount
     }
 }

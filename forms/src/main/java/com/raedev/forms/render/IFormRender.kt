@@ -1,21 +1,19 @@
-package com.raedev.forms.internal
+package com.raedev.forms.render
 
-import androidx.recyclerview.widget.RecyclerView
 import com.raedev.forms.items.FormItem
 
 /**
- *
+ * 表单渲染接口
  * @author RAE
- * @date 2022/09/02
+ * @date 2022/09/13
  * @copyright Copyright (c) https://github.com/raedev All rights reserved.
  */
-interface FormAdapterProxy {
+interface IFormRender {
 
     /**
-     * 获取 RecyclerView
-     * @return RecyclerView
+     * 渲染
      */
-    fun getRecyclerView(): RecyclerView?
+    fun render()
 
     /**
      * 需要刷新列表
@@ -49,7 +47,7 @@ interface FormAdapterProxy {
     fun onFormError(message: String)
 
     /**
-     * 刷新可见的表单项
+     * 高亮当前表单
      */
-    fun refreshVisibleItems()
+    fun highlight(formItem: FormItem?)
 }

@@ -1,13 +1,14 @@
 package com.raedev.forms.render
 
+import android.annotation.SuppressLint
+import android.content.Context
+import android.util.Log
 import androidx.fragment.app.FragmentManager
-import com.raedev.forms.FormGroup
-import com.raedev.forms.FormItemType
-import com.raedev.forms.items.EditTextFormItem
-import com.raedev.forms.items.FormItem
-import com.raedev.forms.items.GroupTitleFormItem
-import com.raedev.forms.items.NumberEditTextFormItem
-import kotlin.reflect.KClass
+import com.raedev.forms.FormGroupAdapter
+import com.raedev.forms.FormInputType
+import com.raedev.forms.dict.FormDataProvider
+import com.raedev.forms.internal.TopLinearSmoothScroller
+import com.raedev.forms.items.*
 
 /**
  * 表单渲染，我们建议业务代码继承FormRender进行对表单的渲染操作。
@@ -15,151 +16,230 @@ import kotlin.reflect.KClass
  * @date 2022/09/07
  * @copyright Copyright (c) https://github.com/raedev All rights reserved.
  */
+@Suppress("MemberVisibilityCanBePrivate")
 open class FormRender(
+    private val context: Context,
     /** 表单组 */
-    private val formGroup: FormGroup,
+    private val adapter: FormGroupAdapter,
     /** 表单项渲染需要依赖的FragmentManager */
     private val fragmentManager: FragmentManager? = null
-) {
+) : IFormRender {
 
-    private class AutoType(val labels: List<String>, val types: List<KClass<*>> = emptyList()) {
-        fun match(label: String, type: KClass<*>? = null): Boolean {
-            val count = labels.count { label.contains(it) }
-            if (type != null && count == 0) return types.contains(type)
-            return count > 0
-        }
+    protected companion object {
+        const val TAG = "RAE.FormRender"
     }
 
+    /** 表单组 */
+    protected val formGroup = adapter.formGroup
 
-    /** 数字类型 */
-    private val numberTypes by lazy {
-        AutoType(
-            listOf("面积", "元", "金额", "费用"),
-            listOf(Int::class, Long::class, Float::class, Double::class)
-        )
-    }
-
-    /** 日期类型 */
-    private val dateTypes by lazy { AutoType(listOf("时间", "日期", "截止")) }
-
-    /** 单选类型 */
-    private val radioTypes by lazy {
-        AutoType(listOf("是否"))
-    }
-
-
-    /**
-     * 执行渲染，由子类实现
-     */
-    open fun render() {
-        throw IllegalAccessException("子类不需要调用父类的render渲染方法。")
-    }
+    protected val smoothScroller by lazy { TopLinearSmoothScroller(context) }
 
     /**
      * 添加到表单组
      */
-    fun addItem(formItem: FormItem): Boolean {
-        val result = formGroup.addItem(formItem)
-        notifyFormItemAdded(formItem)
-        return result
+    protected fun <T : FormItem> T.addToFormGroup(
+        parent: FormItem? = null,
+        block: ((T) -> Unit)? = null
+    ): T {
+        block?.invoke(this)
+        val rootFormGroup = this@FormRender.formGroup
+        this.formGroup = rootFormGroup
+        val binding = if (this@FormRender is IFormDataBinding) this@FormRender else null
+        this.onFormRender(fragmentManager, binding)
+        if (parent == null) rootFormGroup.addItem(this)
+        else rootFormGroup.addChildren(parent, this)
+        return this
     }
 
     /**
-     * 添加到子表单中
+     * 分组标题栏
      */
-    protected fun addChildren(parent: FormItem, item: FormItem) {
-        formGroup.addChildren(parent, item)
-        notifyFormItemAdded(item)
-    }
-
-    private fun notifyFormItemAdded(formItem: FormItem) {
-        val dataBinding: IFormDataBinding? = if (this is IFormDataBinding) this else null
-        formItem.onFormItemAdded(
-            formGroup.indexOf(formItem),
-            formGroup,
-            fragmentManager,
-            dataBinding
-        )
+    open fun addGroupTitle(label: String): GroupTitleFormItem {
+        return GroupTitleFormItem(label).addToFormGroup()
     }
 
     /**
-     * 创建表单项
+     * 添加文本编辑框
      */
-    fun createFormItem(
-        type: FormItemType,
-        label: String,
-        name: String,
-        value: String?,
-        required: Boolean = false,
-        returnType: KClass<*>? = null
-    ): FormItem {
-        return when (type) {
-            FormItemType.EditText -> newEditText(label, name, value, required)
-            FormItemType.NumberEditText -> newNumberEditText(label, name, value, required)
-            else -> autoCreateFormItem(label, name, value, required, returnType)
-        }
+    protected open fun addEditTextInternal(
+        inputType: FormInputType,
+        label: String, name: String, value: String? = null, required: Boolean = false,
+        parent: FormItem? = null,
+    ): EditTextFormItem {
+        return EditTextFormItem(inputType, label, name, value, required).addToFormGroup(parent)
     }
 
+
     /**
-     * 自动推断类型
+     * (子表单) 添加文本编辑框
      */
-    protected open fun autoCreateFormItem(
-        label: String,
-        name: String,
-        value: String?,
-        required: Boolean = false,
-        returnType: KClass<*>? = null
-    ): FormItem {
-        return when {
-            numberTypes.match(label, returnType) -> {
-                newNumberEditText(label, name, value, required)
-            }
-            radioTypes.match(label, returnType) -> {
-                // TODO 单选类型
-                newNumberEditText(label, name, value, required)
-            }
-            dateTypes.match(label, returnType) -> {
-                // TODO 日期类型
-                newEditText(label, name, value, required)
-            }
-            else -> newEditText(label, name, value, required)
-        }
+    open fun addEditTextChild(
+        parent: FormItem,
+        label: String, name: String, value: String? = null, required: Boolean = false,
+    ): EditTextFormItem {
+        return addEditText(label, name, value, required, parent)
     }
 
 
     /**
      * 添加文本编辑框
      */
-    fun newEditText(
-        label: String,
-        name: String,
-        value: String?,
-        required: Boolean = false
+    open fun addEditText(
+        label: String, name: String, value: String? = null, required: Boolean = false,
+        parent: FormItem? = null,
     ): EditTextFormItem {
-        return EditTextFormItem(label, name, value).apply { this.required = required }
+        return addEditTextInternal(FormInputType.Text, label, name, value, required, parent)
     }
+
+
+    /**
+     * 添加文本编辑框
+     */
+    open fun addMultiEditText(
+        label: String, name: String, value: String? = null, required: Boolean = false,
+        parent: FormItem? = null,
+    ): EditTextFormItem {
+        return addEditTextInternal(FormInputType.MultiText, label, name, value, required)
+    }
+
 
     /**
      * 数字编辑框
      */
-    fun newNumberEditText(
-        label: String,
-        name: String,
-        value: String?,
-        required: Boolean = false,
-        unit: String? = null
-    ): NumberEditTextFormItem {
-        return NumberEditTextFormItem(label, name, value).apply {
-            this.required = required
-            this.unit = unit
+    open fun addNumberEditText(
+        label: String, name: String, value: String? = null, required: Boolean = false,
+        parent: FormItem? = null
+    ): EditTextFormItem {
+        val inputType = when {
+            label.isPhone() -> FormInputType.Phone
+            label.isDecimalInput() -> FormInputType.Decimal
+            else -> FormInputType.Number
         }
+        return addEditTextInternal(inputType, label, name, value, required, parent)
     }
 
     /**
-     * 组标题栏
+     * (子表单) 数字编辑框
      */
-    fun newGroupTitle(label: String): GroupTitleFormItem {
-        return GroupTitleFormItem(label)
+    open fun addNumberEditTextChild(
+        parent: FormItem,
+        label: String, name: String, value: String? = null, required: Boolean = false,
+    ): EditTextFormItem {
+        return addNumberEditText(label, name, value, required, parent)
     }
+
+
+    /**
+     * 添加单选框
+     */
+    open fun addRadioGroup(
+        label: String, name: String, value: String? = null, required: Boolean = false,
+        parent: FormItem? = null
+    ): RadioGroupFormItem {
+        return RadioGroupFormItem(label, name, value, required).addToFormGroup(parent)
+    }
+
+    /**
+     * 添加单选框
+     */
+    open fun addRadioGroupChild(
+        parent: FormItem,
+        label: String, name: String, value: String? = null, required: Boolean = false,
+    ): RadioGroupFormItem = addRadioGroup(label, name, value, required, parent)
+
+
+    /**
+     * 日期选择框
+     */
+    open fun addDate(
+        label: String, name: String, value: String? = null, required: Boolean = false,
+        parent: FormItem? = null
+    ): DateFormItem {
+        return DateFormItem(label, name, value, required).addToFormGroup(parent)
+    }
+
+
+    /**
+     * 选择框
+     */
+    open fun addSelect(
+        provider: FormDataProvider,
+        label: String, name: String, value: String? = null, required: Boolean = false,
+        dialogTitle: String? = null
+    ): SelectFormItem {
+        return SelectFormItem(provider, label, name, value, required).addToFormGroup {
+            it.dialogTitle = dialogTitle
+        }
+    }
+
+
+    // region 辅助方法
+
+    private fun String.isDecimalInput(): Boolean {
+        return this.contains("面积") || this.contains("金额")
+    }
+
+    private fun String.isPhone(): Boolean {
+        return this.contains("手机") || this.contains("电话")
+    }
+
+    // endregion
+
+
+    // region IFormRender 接口实现
+
+    /**
+     * 执行渲染
+     */
+    override fun render() {
+        formGroup.attachRender(this)
+    }
+
+    /**
+     * 是否可以刷新列表
+     */
+    private fun canRefresh(): Boolean {
+        val recyclerView = adapter.recyclerView ?: return false
+        if (recyclerView.isComputingLayout) return false
+        if (recyclerView.layoutManager?.isSmoothScrolling == true) return false
+        return true
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    override fun onNeedRefresh() {
+        if (!canRefresh()) return
+        adapter.notifyDataSetChanged()
+    }
+
+    override fun onFormItemInserted(insertItem: FormItem?, index: Int) {
+        if (!canRefresh()) return
+        adapter.notifyItemInserted(index)
+    }
+
+    override fun onFormItemRemoved(removeItem: FormItem?, index: Int, count: Int) {
+        if (!canRefresh()) return
+        if (count > 0) {
+            adapter.notifyItemRangeRemoved(index, count)
+        } else {
+            adapter.notifyItemRemoved(index)
+        }
+    }
+
+    override fun onFormItemUpdated(index: Int) {
+        if (!canRefresh()) return
+        adapter.notifyItemChanged(index)
+    }
+
+    override fun onFormError(message: String) {
+        Log.e(TAG, message)
+    }
+
+    override fun highlight(formItem: FormItem?) {
+        formItem ?: return
+        val recyclerView = adapter.recyclerView ?: return
+        smoothScroller.scrollNow(recyclerView, formItem.position)
+    }
+
+    // endregion
 
 }

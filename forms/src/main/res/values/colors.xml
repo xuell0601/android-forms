@@ -14,5 +14,9 @@
     <color name="form_hint_primary">#BFBFBF</color>
     <!-- 表单背景颜色 -->
     <color name="form_background_primary">#F5F5F5</color>
+    <!--对话框标题样式-->
+    <color name="form_dialog_title_color">#03A9F4</color>
+    <!--选中颜色-->
+    <color name="form_selected_color">#F5F5F5</color>
 
 </resources>

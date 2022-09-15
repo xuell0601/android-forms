@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="form_holder">Form表单</string>
+    <string name="form_holder">表单内容</string>
     <string name="form_hint">请输入内容</string>
+    <string name="form_select_date">请选择日期</string>
 </resources>

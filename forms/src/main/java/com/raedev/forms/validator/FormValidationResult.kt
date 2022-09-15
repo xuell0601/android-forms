@@ -15,6 +15,12 @@ class FormValidationResult private constructor(
     private val text: String?
 ) {
 
+    /**
+     * 校验错误时的错误消息
+     */
+    val message: String
+        get() = text!!
+
     companion object {
 
         fun success(formItem: FormItem? = null): FormValidationResult {
@@ -33,11 +39,5 @@ class FormValidationResult private constructor(
         return text == null
     }
 
-    /**
-     * 校验错误时的错误消息
-     */
-    fun message(): String {
-        return text!!
-    }
 
 }

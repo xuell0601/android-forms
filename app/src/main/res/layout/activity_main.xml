@@ -48,7 +48,7 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="4dp"
             android:layout_weight="1"
-            android:text="表单校验" />
+            android:text="校验" />
 
         <Button
             android:id="@+id/btn_viewonly"

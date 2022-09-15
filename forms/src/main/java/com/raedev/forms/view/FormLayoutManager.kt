@@ -3,7 +3,6 @@
 package com.raedev.forms.view
 
 import android.content.Context
-import android.util.Log
 import android.view.Gravity
 import android.view.View
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -63,8 +62,9 @@ class FormLayoutManager(context: Context, private val formGroup: FormGroup) :
         super.measureChildWithMargins(child, widthUsed, heightUsed)
         if (isInLayoutChildren) return
         val holder = getChildViewHolder(child)
+        val position = if (holder.adapterPosition != -1) holder.adapterPosition else return
         calcTitleMaxWidth()
-        formGroup[holder.adapterPosition].layout(holder)
+        formGroup[position].layout(holder)
     }
 
     /**
@@ -74,7 +74,8 @@ class FormLayoutManager(context: Context, private val formGroup: FormGroup) :
         for (i in 0 until childCount) {
             val view = findViewByPosition(i) ?: continue
             val holder = getChildViewHolder(view)
-            val formItem = formGroup[holder.adapterPosition]
+            val position = if (holder.adapterPosition != -1) holder.adapterPosition else continue
+            val formItem = formGroup[position]
             // 测量子表单标题布局
             val childTitleWidth = formItem.getTitleLayoutWidth(holder)
             if (childTitleWidth > maxTitleWidth) {
@@ -87,13 +88,14 @@ class FormLayoutManager(context: Context, private val formGroup: FormGroup) :
 
 
     private fun layoutChildren() {
-        Log.d(TAG, "layoutChildren: $itemCount, max=$maxTitleWidth")
+//        Log.d(TAG, "layoutChildren: $itemCount, max=$maxTitleWidth")
         for (i in 0 until childCount) {
             val view = findViewByPosition(i) ?: continue
             val holder = getChildViewHolder(view)
+            val position = if (holder.adapterPosition != -1) holder.adapterPosition else continue
             holder.titleLayoutGravity = titleLayoutGravity
             holder.maxTitleLayoutWidth = maxTitleWidth
-            formGroup[holder.adapterPosition].layout(holder)
+            formGroup[position].layout(holder)
         }
     }
 }

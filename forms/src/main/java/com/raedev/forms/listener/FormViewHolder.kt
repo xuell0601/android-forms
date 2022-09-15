@@ -129,7 +129,7 @@ open class FormViewHolder(inflater: LayoutInflater, parent: ViewGroup, layoutId:
     /**
      * 查找标题布局
      */
-    internal fun findTitleLayout(): LinearLayout {
+    internal fun findTitleLayout(): ViewGroup {
         return this.getView(R.id.title_layout)
     }
 
@@ -138,8 +138,8 @@ open class FormViewHolder(inflater: LayoutInflater, parent: ViewGroup, layoutId:
      */
     internal fun updateTitleLayout() {
         if (maxTitleLayoutWidth == -1) return
-        this.getView<LinearLayout>(R.id.title_layout).apply {
-            this.gravity = titleLayoutGravity
+        this.getView<ViewGroup>(R.id.title_layout).apply {
+            if (this is LinearLayout) this.gravity = titleLayoutGravity
             if (this.layoutParams.width == maxTitleLayoutWidth) return@apply
             this.updateLayoutParams { this.width = maxTitleLayoutWidth }
         }

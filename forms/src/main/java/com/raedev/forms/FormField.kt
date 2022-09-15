@@ -24,7 +24,7 @@ annotation class FormField(
     val dictCode: String = "",
 
     /** 表单类型，默认是文本输入框 */
-    val type: FormItemType = FormItemType.Auto,
+    val type: FormType = FormType.Auto,
 
     /**
      * 取值单位

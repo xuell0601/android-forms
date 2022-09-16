@@ -40,11 +40,6 @@ interface IFormRender {
      */
     fun onFormItemUpdated(index: Int)
 
-    /**
-     * 表单发生错误，一般忽略即可，也可以打Log看日志
-     * @param message 错误信息
-     */
-    fun onFormError(message: String)
 
     /**
      * 高亮当前表单

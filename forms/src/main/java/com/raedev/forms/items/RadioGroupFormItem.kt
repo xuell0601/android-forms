@@ -69,7 +69,6 @@ open class RadioGroupFormItem(
         holder.radioGroup().setOnCheckedChangeListener(null)
     }
 
-
     /**
      * 设置选中的文本
      * @param checkedText 选中文本

@@ -1,26 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/form_select_dialog_item_selector"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:padding="12dp">
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp">
+
+    <ImageView
+        android:id="@+id/img_back_arrow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:contentDescription="@string/form_holder"
+        android:rotation="-180"
+        android:src="@drawable/form_icon_arrow"
+        app:tint="@color/form_title_primary" />
 
     <TextView
         android:id="@+id/tv_label"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
+        android:ellipsize="end"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:singleLine="true"
         android:text="@string/form_holder"
         android:textColor="@color/form_title_primary"
         android:textSize="14sp" />
 
-    <ImageView
-        android:id="@+id/img_arrow"
+    <TextView
+        android:id="@+id/tv_check"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:checked="true"
+        android:gravity="center"
+        android:padding="12dp"
+        android:text="@string/form_select"
+        android:textColor="@color/form_primary"
+        android:textSize="12sp" />
+
+    <ImageView
+        android:id="@+id/img_next_arrow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:contentDescription="@string/form_holder"
         android:src="@drawable/form_icon_arrow"
-        android:contentDescription="@string/form_holder" />
+        app:tint="@color/form_hint_primary" />
 
 </LinearLayout>

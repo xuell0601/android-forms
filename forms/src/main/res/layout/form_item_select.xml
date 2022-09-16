@@ -4,6 +4,7 @@
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
     android:orientation="horizontal"
+    android:background="@color/form_item_background"
     android:paddingStart="8dp"
     android:paddingTop="6dp"
     android:paddingEnd="8dp"

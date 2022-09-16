@@ -18,5 +18,6 @@
     <color name="form_dialog_title_color">#03A9F4</color>
     <!--选中颜色-->
     <color name="form_selected_color">#F5F5F5</color>
+    <color name="form_item_background">#FFFFFF</color>
 
 </resources>

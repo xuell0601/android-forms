@@ -3,7 +3,6 @@
 package com.raedev.forms.view
 
 import android.content.Context
-import android.view.Gravity
 import android.view.View
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -23,9 +22,6 @@ class FormLayoutManager(context: Context, private val formGroup: FormGroup) :
     companion object {
         private const val TAG = "RAE.FormLayoutManager"
     }
-
-    /** 标题布局对齐方式 */
-    var titleLayoutGravity: Int = Gravity.START or Gravity.CENTER_VERTICAL
 
     /** 标题最大的比例，默认是父布局的一半 */
     var maxTitleWidthRatio: Float = 0.5f
@@ -88,14 +84,33 @@ class FormLayoutManager(context: Context, private val formGroup: FormGroup) :
 
 
     private fun layoutChildren() {
-//        Log.d(TAG, "layoutChildren: $itemCount, max=$maxTitleWidth")
         for (i in 0 until childCount) {
             val view = findViewByPosition(i) ?: continue
             val holder = getChildViewHolder(view)
             val position = if (holder.adapterPosition != -1) holder.adapterPosition else continue
-            holder.titleLayoutGravity = titleLayoutGravity
             holder.maxTitleLayoutWidth = maxTitleWidth
             formGroup[position].layout(holder)
         }
     }
+
+    /**
+     * 查找表单组的焦点View，解决键盘点击下一项的时候崩溃问题
+     */
+    override fun onFocusSearchFailed(
+        focused: View,
+        focusDirection: Int,
+        recycler: RecyclerView.Recycler,
+        state: RecyclerView.State
+    ): View? {
+        val holderView = super.onFocusSearchFailed(focused, focusDirection, recycler, state)
+            ?: return null
+        val lp = holderView.layoutParams
+        if (lp !is RecyclerView.LayoutParams) return holderView
+        val position = lp.viewAdapterPosition
+        if (position == RecyclerView.NO_POSITION) return holderView
+        val item = formGroup[position]
+        return item.focusSearch(getChildViewHolder(holderView))
+    }
+
+
 }

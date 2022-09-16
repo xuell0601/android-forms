@@ -32,6 +32,9 @@ class SelectFormItem(
     var dialogTitle: String? = null
         get() = if (field == null) "请选择$label" else field
 
+    /** 是否显示全路径 */
+    var enableFullPath: Boolean = true
+
     init {
         this.required = required
     }
@@ -46,10 +49,14 @@ class SelectFormItem(
     }
 
     override fun onBindViewHolder(holder: FormViewHolder) {
-        val label = this.value?.let { provider.getItemLabel(it) }
+        val label = this.value?.let {
+            if (enableFullPath) {
+                provider.getItem(it)?.let { item -> provider.getFullLabel(item) }
+            } else provider.getItemLabel(it)
+        }
         holder.setVisibility(R.id.tv_value, true)
         holder.setText(R.id.tv_value, label)
-        holder.setHint(R.id.tv_value, this.hint)
+        holder.setHint(R.id.tv_value, this.hint, this.viewonly)
     }
 
     private fun onItemClick(view: View) {
@@ -61,6 +68,7 @@ class SelectFormItem(
     }
 
     override fun onFormSelectChanged(item: FormSelectItem) {
+        debug("当前选择：${provider.getFullLabel(item)}")
         if (this.value != item.value) {
             onValueChanged(item.value)
         }

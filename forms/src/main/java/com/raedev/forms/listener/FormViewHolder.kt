@@ -4,8 +4,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
-import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.annotation.StringRes
 import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.RecyclerView
 import com.raedev.forms.R
@@ -27,9 +27,6 @@ open class FormViewHolder(inflater: LayoutInflater, parent: ViewGroup, layoutId:
 
     /** 标题布局最大宽度 */
     internal var maxTitleLayoutWidth = -1
-
-    /** 标题布局对齐方式 */
-    internal var titleLayoutGravity = -1
 
     /** 表单标题 */
     private val titleView: TextView?
@@ -106,8 +103,8 @@ open class FormViewHolder(inflater: LayoutInflater, parent: ViewGroup, layoutId:
     /**
      * 设置提示信息，一般是TextView
      */
-    internal fun setHint(id: Int, hintText: String?) {
-        getView<TextView>(id).hint = hintText
+    internal fun setHint(id: Int, hintText: String?, viewonly: Boolean = false) {
+        getView<TextView>(id).hint = if (viewonly) "" else hintText
     }
 
     /**
@@ -139,7 +136,6 @@ open class FormViewHolder(inflater: LayoutInflater, parent: ViewGroup, layoutId:
     internal fun updateTitleLayout() {
         if (maxTitleLayoutWidth == -1) return
         this.getView<ViewGroup>(R.id.title_layout).apply {
-            if (this is LinearLayout) this.gravity = titleLayoutGravity
             if (this.layoutParams.width == maxTitleLayoutWidth) return@apply
             this.updateLayoutParams { this.width = maxTitleLayoutWidth }
         }
@@ -154,4 +150,6 @@ open class FormViewHolder(inflater: LayoutInflater, parent: ViewGroup, layoutId:
         valueTextView?.visibility = if (viewonly) View.VISIBLE else View.GONE
         valueEditText?.visibility = if (viewonly) View.GONE else View.VISIBLE
     }
+
+    fun getString(@StringRes resId: Int) = itemView.context.getString(resId)
 }

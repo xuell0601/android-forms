@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.raedev.forms.R
 import com.raedev.forms.dict.FormDataProvider
@@ -21,7 +22,7 @@ internal class FormSelectAdapter(
     private val selectedItem: FormSelectItem?,
     private val provider: FormDataProvider,
     private var listener: ((FormSelectItem) -> Unit)
-) : RecyclerView.Adapter<FormSelectViewHolder>(), View.OnClickListener {
+) : RecyclerView.Adapter<FormSelectViewHolder>(), View.OnClickListener, View.OnLongClickListener {
 
     companion object {
         private const val NAVIGATION_NAME = "FROM_NAVIGATION_NAME"
@@ -34,10 +35,14 @@ internal class FormSelectAdapter(
     override fun getItemCount(): Int = items.size
 
     /** 导航Item */
-    private val navigationItem by lazy { FormSelectItem("", NAVIGATION_NAME) }
+    private val navigationItem by lazy { FormSelectItem("", "", NAVIGATION_NAME) }
 
     init {
-        this.performSelectItem(selectedItem)
+        // 初始化数据
+        setDataList(provider.getItems(selectedItem))
+        if (selectedItem?.parent != null) {
+            appendNavigationItem(selectedItem)
+        }
     }
 
 
@@ -50,85 +55,103 @@ internal class FormSelectAdapter(
 
     override fun onBindViewHolder(holder: FormSelectViewHolder, position: Int) {
         val item = items[position]
+        holder.itemView.isSelected = item == selectedItem
         holder.itemView.setOnClickListener(this)
+        holder.itemView.setOnLongClickListener(this)
         holder.setLabel(item.label)
         holder.showArrow(item.hasChildren)
-        holder.itemView.isSelected = item == selectedItem || item.isNavigation()
+        holder.showBackArrow(item.isNavigation())
+        holder.showCheckView(provider.enableCheckParent && item.isNavigation())
+        holder.checkView.tag = position
+        holder.checkView.setOnClickListener(this)
     }
 
+
     override fun onClick(view: View) {
-        val position = (view.layoutParams as RecyclerView.LayoutParams).viewAdapterPosition
-        if (position == RecyclerView.NO_POSITION) return
-        val item = items[position]
-        // 导航栏
-        if (item.isNavigation()) {
-            // 返回上一级
-            goPreLevel(item)
+        if (view.id == R.id.tv_check) {
+            val position = view.tag as Int
+            onCheckClick(items[position].parent!!)
             return
         }
-        if (!item.hasChildren) {
-            // 没有子项的时候回调
-            listener.invoke(item)
-            return
+        val item = findItemByView(view) ?: return
+        when {
+            // 点击导航栏的时候返回上一级
+            item.isNavigation() -> backToThePreviousLevel(item)
+            // 有子节点的时候前往下一级
+            item.hasChildren -> goToTheNextLevel(item)
+            // 其他情况执行回调
+            else -> listener.invoke(item)
         }
-        // 进入下一级
-        goNextLevel(item)
     }
 
     /**
-     * 前往下一级
+     * 点击选择
      */
-    private fun goNextLevel(item: FormSelectItem) {
-        items.clear()
-        items.addAll(item.children!!)
-        items.add(0, makeNavigationItem(item))
-        notifyDataSetChanged()
+    private fun onCheckClick(item: FormSelectItem) {
+        provider.getItem(item.value)?.let {
+            listener.invoke(it)
+        }
     }
 
     /**
      * 返回上一级
      */
-    private fun goPreLevel(item: FormSelectItem) {
-        if (item.parent?.parent == null) {
-            // 已经到顶级
-            this.performSelectItem(null)
-            return
-        }
-        items.clear()
-        items.addAll(item.parent!!.children!!)
-        items.add(0, makeNavigationItem(item.parent!!))
-        notifyDataSetChanged()
+    private fun backToThePreviousLevel(item: FormSelectItem) {
+        // 回到顶级
+        val parent = item.parent!!.parent ?: return setDataList(provider.getItems())
+        setDataList(parent.children!!)
+        appendNavigationItem(item.parent!!)
     }
 
     /**
-     * 立即执行选择项
+     * 前往下一级
      */
-    private fun performSelectItem(item: FormSelectItem?) {
-        val data = provider.getItems(item)
+    private fun goToTheNextLevel(item: FormSelectItem) {
+        if (!item.hasChildren) return
+        val children = item.children ?: return
+        setDataList(children)
+        appendNavigationItem(children[0])
+    }
+
+    /**
+     * 重新设置并刷新当前数据列表
+     */
+    private fun setDataList(data: List<FormSelectItem>) {
         this.items.clear()
         this.items.addAll(data)
-        // 处理导航栏
-        if (item?.parent != null) {
-            // 返回上一级
-            items.add(0, makeNavigationItem(item))
-        }
         notifyDataSetChanged()
     }
 
     /**
-     * 创建导航栏
+     * 添加导航栏
      */
-    private fun makeNavigationItem(current: FormSelectItem): FormSelectItem {
-        navigationItem.label = "返回上一级：" + provider.getNavigationTitle(current)
-        navigationItem.parent = current.parent
-        return navigationItem
+    private fun appendNavigationItem(item: FormSelectItem) {
+        navigationItem.apply {
+            value = item.value
+            parent = item.parent
+            label = provider.getNavigationTitle(item)
+            items.add(0, this)
+            notifyItemInserted(0)
+        }
     }
 
     /**
      * 是否为导航栏
      */
     private fun FormSelectItem.isNavigation(): Boolean {
-        return NAVIGATION_NAME == this.value
+        return NAVIGATION_NAME == this.name
+    }
+
+    private fun findItemByView(view: View): FormSelectItem? {
+        val position = (view.layoutParams as RecyclerView.LayoutParams).viewAdapterPosition
+        if (position == RecyclerView.NO_POSITION) return null
+        return items[position]
+    }
+
+    override fun onLongClick(v: View): Boolean {
+        val item = findItemByView(v) ?: return false
+        Toast.makeText(v.context, item.label, Toast.LENGTH_SHORT).show()
+        return true
     }
 
 }

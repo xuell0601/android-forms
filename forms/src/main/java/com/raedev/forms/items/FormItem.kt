@@ -2,6 +2,7 @@ package com.raedev.forms.items
 
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.FragmentManager
 import com.raedev.forms.BuildConfig
@@ -155,6 +156,14 @@ abstract class FormItem(
         }
     }
 
+    /**
+     * 查找焦点View
+     */
+    fun focusSearch(holder: FormViewHolder): View? {
+        return null
+    }
+
+
     // region 生命周期
 
 
@@ -180,7 +189,7 @@ abstract class FormItem(
         // 绑定View
         onBindViewHolder(holder)
         // 最后绑定事件
-        onBindViewEvent(holder)
+        if (!viewonly) onBindViewEvent(holder)
     }
 
     /**
@@ -209,7 +218,7 @@ abstract class FormItem(
      * View展示在窗口的时候触发
      */
     open fun onViewAttachedToWindow(holder: FormViewHolder) {
-        onBindViewEvent(holder)
+        if (!viewonly) onBindViewEvent(holder)
     }
 
     /**

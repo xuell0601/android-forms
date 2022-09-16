@@ -4,6 +4,7 @@
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
     android:orientation="horizontal"
+    android:background="@color/form_item_background"
     android:paddingStart="8dp"
     android:paddingTop="6dp"
     android:paddingEnd="8dp"
@@ -73,12 +74,14 @@
             android:id="@+id/rb_checked"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:buttonTint="@color/form_primary"
             android:text="是" />
 
         <RadioButton
             android:id="@+id/rb_unchecked"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:buttonTint="@color/form_primary"
             android:text="否" />
 
     </com.raedev.forms.view.FormRadioGroup>

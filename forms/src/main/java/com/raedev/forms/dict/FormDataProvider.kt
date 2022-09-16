@@ -9,28 +9,34 @@ package com.raedev.forms.dict
 @Suppress("MemberVisibilityCanBePrivate")
 abstract class FormDataProvider {
 
+
     /** 字典值为Key的数据列表 */
-    private val dataMap = mutableMapOf<String, FormSelectItem>()
+    protected val dataMap = mutableMapOf<String, FormSelectItem>()
+
+    /** 路径分割符 */
+    var pathSeparator: String = " / "
+
+    /** 是允许选择父节点 */
+    var enableCheckParent: Boolean = false
 
     /**
      * 添加数据集合
      */
     open fun addData(items: List<FormSelectItem>) {
         val dataList = mutableListOf<FormSelectItem>()
-        for (item in items) {
-            loadItems(dataList, item)
-        }
-        dataList.forEach { item ->
-            dataMap[item.value] = item
-        }
+        items.sort().forEach { expandChildItems(dataList, it) }
+        dataList.forEach { item -> dataMap[item.value] = item }
     }
 
-    private fun loadItems(result: MutableList<FormSelectItem>, item: FormSelectItem) {
+    /**
+     * 平铺子项
+     */
+    protected open fun expandChildItems(result: MutableList<FormSelectItem>, item: FormSelectItem) {
         result.add(item)
         if (item.hasChildren) {
             // 递归添加
             item.children!!.forEach {
-                loadItems(result, it)
+                expandChildItems(result, it)
             }
         }
     }
@@ -50,7 +56,7 @@ abstract class FormDataProvider {
      * 获取根节点的列表
      */
     protected open fun getRootItems(): List<FormSelectItem> {
-        return dataMap.values.filter { it.parent == null }.sort()
+        return dataMap.values.filter { it.parent == null }
     }
 
     /**
@@ -61,53 +67,63 @@ abstract class FormDataProvider {
     }
 
     /**
+     * 找当前节点的所有父节点：me > [0] parent > [1] grandpa > [2] great-grandfather
+     */
+    open fun findParents(item: FormSelectItem, result: MutableList<FormSelectItem>) {
+        val parent = item.parent ?: return
+        result.add(parent)
+        // 递归
+        findParents(parent, result)
+    }
+
+    /**
      * 根据选择的项目加载列表
      */
-    open fun getItems(selectItem: FormSelectItem?): List<FormSelectItem> {
+    open fun getItems(selectItem: FormSelectItem? = null): List<FormSelectItem> {
         selectItem ?: return getRootItems()
         if (selectItem.parent == null) return getRootItems()
         val items = findChildren(selectItem)
         if (items.isEmpty()) {
             return selectItem.parent!!.children!!
         }
-        return items.sort()
+        return items
     }
 
 
-    private fun List<FormSelectItem>.sort(): List<FormSelectItem> {
+    /**
+     * 排序
+     */
+    protected open fun List<FormSelectItem>.sort(): List<FormSelectItem> {
         return this.sortedWith { a, b ->
-            val defaultOrder = when {
-                // 有排序的优先
-                a.order != -1 && b.order != -1 -> a.order - b.order
-                else -> a.value.compareTo(b.value)
-            }
             when {
-                a.hasChildren && b.hasChildren -> defaultOrder
-                a.hasChildren -> -1
                 b.hasChildren -> 1
-                // 有排序的优先
-                a.order != -1 && b.order != -1 -> a.order - b.order
-                else -> defaultOrder
+                a.hasChildren -> -1
+                else -> 0
             }
         }
     }
 
+    /**
+     * 获取导航路径文本
+     */
     open fun getNavigationTitle(item: FormSelectItem): String {
-        return appendParentTitle(
-            generateNavigationTitle(if (item.parent == null) item.label else null),
-            item.parent
-        )
+        val parentList = mutableListOf<FormSelectItem>()
+        findParents(item, parentList)
+        // 倒序
+        parentList.reverse()
+        val sb = StringBuilder()
+        parentList.forEachIndexed { index, it ->
+            if (index > 0) sb.append(pathSeparator)
+            sb.append(it.label)
+        }
+        return sb.toString()
     }
 
-
-    private fun appendParentTitle(title: String, parent: FormSelectItem?): String {
-        if (parent == null) return title
-        val currentTitle = generateNavigationTitle(parent.label)
-        if (parent.parent != null) return appendParentTitle(currentTitle, parent.parent)
-        return currentTitle
-    }
-
-    protected open fun generateNavigationTitle(title: String?): String {
-        return title?.let { " / $title" } ?: ""
+    /**
+     * 获取全路径展示的文本
+     */
+    open fun getFullLabel(item: FormSelectItem): String {
+        val parent = getNavigationTitle(item)
+        return if (parent.isEmpty()) item.label else "$parent$pathSeparator${item.label}"
     }
 }

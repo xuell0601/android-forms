@@ -16,7 +16,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@color/form_dialog_title_color"
-            android:padding="12dp"
+            android:padding="10dp"
             android:text="@string/form_holder"
             android:textColor="@android:color/white"
             android:textSize="16sp" />

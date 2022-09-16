@@ -49,7 +49,7 @@ class FormSelectDialogFragment : AppCompatDialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dialog = AppCompatDialog(requireContext(), R.style.SelectionFormItemDialog)
         dialog.setCancelable(false)
-        dialog.setCanceledOnTouchOutside(true)
+        dialog.setCanceledOnTouchOutside(false)
         return dialog
     }
 

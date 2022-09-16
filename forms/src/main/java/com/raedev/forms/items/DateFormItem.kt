@@ -34,6 +34,9 @@ class DateFormItem(
 
     private var format: SimpleDateFormat = SimpleDateFormat("yyyy-MM-dd")
 
+    override var hint: String? = null
+        get() = if (field.isNullOrEmpty()) "请选择" else field
+
     /** 日期格式 */
     var dateFormat: String = "yyyy-MM-dd"
         set(value) {
@@ -79,7 +82,7 @@ class DateFormItem(
     }
 
     override fun onBindViewHolder(holder: FormViewHolder) {
-        debug("当前时间：$currentDate")
+        holder.setHint(R.id.tv_date, this.hint, this.viewonly)
         holder.setText(R.id.tv_date, this.value)
     }
 

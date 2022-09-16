@@ -2,7 +2,6 @@ package com.raedev.forms.render
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.util.Log
 import androidx.fragment.app.FragmentManager
 import com.raedev.forms.FormGroupAdapter
 import com.raedev.forms.FormInputType
@@ -228,10 +227,6 @@ open class FormRender(
     override fun onFormItemUpdated(index: Int) {
         if (!canRefresh()) return
         adapter.notifyItemChanged(index)
-    }
-
-    override fun onFormError(message: String) {
-        Log.e(TAG, message)
     }
 
     override fun highlight(formItem: FormItem?) {

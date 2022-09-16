@@ -10,12 +10,13 @@ open class FormSelectItem(
     /** 字典显示名称 */
     var label: String,
     /** 字典值 */
-    val value: String,
+    var value: String,
     /** 字典名称 */
-    val name: String? = null,
+    var name: String? = null,
     /** 排序 */
     var order: Int = -1
 ) {
+
 
     /** 父节点 */
     internal var parent: FormSelectItem? = null
@@ -27,17 +28,38 @@ open class FormSelectItem(
     internal val hasChildren: Boolean
         get() = !children.isNullOrEmpty()
 
+    /** 其他数据 */
+    private var bundle: MutableMap<String, String>? = null
+
     /**
      * 添加子节点
      */
     fun addChild(child: FormSelectItem) {
-        children ?: mutableListOf<FormSelectItem>().apply { children = this }
+        val list = children ?: mutableListOf<FormSelectItem>().apply { children = this }
         child.parent = this
-        children!!.add(child)
+        list.add(child)
+        // 重新排序
+        list.sortWith { a, b ->
+            when {
+                a.hasChildren -> -1
+                b.hasChildren -> 1
+                else -> 0
+            }
+        }
+    }
+
+    fun putString(name: String, value: String) {
+        val map = bundle ?: mutableMapOf<String, String>().apply { bundle = this }
+        map[name] = value
+    }
+
+    fun getString(name: String): String? {
+        return bundle?.get(name)
     }
 
     override fun toString(): String {
         return "FormDictItem: $label=$value, name=$name, order=$order"
     }
+
 
 }

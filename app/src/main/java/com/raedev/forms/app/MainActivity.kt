@@ -5,6 +5,7 @@ import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
 import com.raedev.forms.FormGroup
@@ -13,8 +14,8 @@ import com.raedev.forms.app.entity.DemoEntity
 import com.raedev.forms.dict.FormSelectItem
 import com.raedev.forms.dict.SimpleDataProvider
 import com.raedev.forms.filter.FormValueFilter
+import com.raedev.forms.items.CheckBoxFormItem
 import com.raedev.forms.items.FormItem
-import com.raedev.forms.items.RadioGroupFormItem
 import com.raedev.forms.render.DataBindingFormRender
 import com.raedev.forms.view.FormItemDecoration
 import com.raedev.forms.view.FormLayoutManager
@@ -32,18 +33,29 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
-        recyclerView.layoutManager = FormLayoutManager(this, formGroup)
-        recyclerView.addItemDecoration(FormItemDecoration(this))
         recyclerView.adapter = adapter
+        recyclerView.layoutManager = FormLayoutManager(this, formGroup)
+        recyclerView.addItemDecoration(
+            FormItemDecoration(
+                this, ContextCompat.getColor(
+                    this,
+                    com.raedev.forms.R.color.form_hint_primary
+                )
+            ).apply {
+                height = 2
+                paddingBottom = 200
+            }
+        )
         // 初始化表单渲染器
         this.render = DataBindingFormRender(this, adapter, supportFragmentManager)
         // 初始化示例
-        editTextDemo()
-        radioDemo()
-        dateDemo()
-        selectDemo()
-        parentAndChildrenDemo()
+//        editTextDemo()
+//        radioDemo()
+//        dateDemo()
+//        selectDemo()
+//        parentAndChildrenDemo()
         dataBindingDemo()
+        otherDemo()
 
 
         // 按钮事件监听
@@ -201,12 +213,14 @@ class MainActivity : AppCompatActivity() {
      */
     private fun parentAndChildrenDemo() {
         render.addGroupTitle("表单关联示例")
-        val rootItem = render.addRadioGroup("打开表单关联项", "parent1", false.toString(), true)
-        rootItem.setCheckBoxLabel("开", "关")
+        val rootItem = render.addCheckBox("表单关联", "parent1", false.toString(), true).apply {
+            hint = "打开试试看吧"
+            setCheckBoxLabel("开", "关")
+        }
         rootItem.setFormChangedListener { item, _, _ ->
             // 移除所有子项目
             item.removeAllChildren()
-            if ((item as RadioGroupFormItem).checked != true) return@setFormChangedListener
+            if (!(item as CheckBoxFormItem).checked) return@setFormChangedListener
             // 二级表单
             render.addEditTextChild(item, "1-1表单", "parent-node1", required = true)
             render.addEditTextChild(item, "1-2表单", "parent-node2")
@@ -231,6 +245,12 @@ class MainActivity : AppCompatActivity() {
         }
         render.bindEntity(entity)
         render.render()
+    }
+
+    private fun otherDemo() {
+        for (i in 0 until 10) {
+            render.addEditText("测试$i", "test$i")
+        }
     }
 
     /**

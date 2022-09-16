@@ -148,6 +148,16 @@ open class FormRender(
 
 
     /**
+     * 添加单选框
+     */
+    open fun addCheckBox(
+        label: String, name: String, value: String? = null, required: Boolean = false,
+        parent: FormItem? = null
+    ): CheckBoxFormItem {
+        return CheckBoxFormItem(label, name, value, required).addToFormGroup(parent)
+    }
+
+    /**
      * 日期选择框
      */
     open fun addDate(

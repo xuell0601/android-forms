@@ -9,11 +9,6 @@ package com.raedev.forms
 enum class FormType {
 
     /**
-     * 自动推断类型
-     */
-    Auto,
-
-    /**
      * 分组标题
      */
     GroupTitle,
@@ -32,6 +27,11 @@ enum class FormType {
      * 单选框
      */
     RadioGroup,
+
+    /**
+     * 复选框
+     */
+    CheckBox,
 
     /**
      * 日期选择

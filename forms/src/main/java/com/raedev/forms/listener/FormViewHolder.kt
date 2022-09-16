@@ -5,7 +5,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.TextView
-import androidx.annotation.StringRes
 import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.RecyclerView
 import com.raedev.forms.R
@@ -151,5 +150,8 @@ open class FormViewHolder(inflater: LayoutInflater, parent: ViewGroup, layoutId:
         valueEditText?.visibility = if (viewonly) View.GONE else View.VISIBLE
     }
 
-    fun getString(@StringRes resId: Int) = itemView.context.getString(resId)
+
+    internal open fun getDividerHeight(): Int {
+        return -1
+    }
 }

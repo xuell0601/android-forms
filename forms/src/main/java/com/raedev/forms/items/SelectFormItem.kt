@@ -74,7 +74,7 @@ class SelectFormItem(
     override fun onFormSelectChanged(item: FormSelectItem) {
         val newValue = provider.getItemValue(item.value)
         if (this.value != newValue) {
-            onValueChanged(newValue)
+            onValueChanged(newValue, true)
         }
     }
 }

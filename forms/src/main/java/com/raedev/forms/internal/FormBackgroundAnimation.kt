@@ -51,6 +51,8 @@ class FormBackgroundAnimation : Animation.AnimationListener {
         isRunning = false
         animView?.let { view ->
             view.background = rawBackground
+            // 再次寻找焦点View
+            view.requestFocus()
             viewRef?.clear()
         }
     }

@@ -130,12 +130,17 @@ abstract class FormItem(
     // endregion
 
 
-    /** 值发生改变的时候由子类负责调用，进行表单值的流程，最后赋值给当前表单 */
-    protected fun onValueChanged(value: String?) {
+    /**
+     * 值发生改变的时候由子类负责调用，进行表单值的流程，最后赋值给当前表单
+     * @param refreshMe 当前表单类型为文本输入框的时候，一般是不需要实时刷新当前Item的。其他情况根据业务来确定。
+     */
+    protected fun onValueChanged(value: String?, refreshMe: Boolean = false) {
         // 进行拦截过滤
         val filterValue = if (filter != null) filter!!.filter(this, value) else value
         // 值由更新的时候刷新自己
-        if (filterValue != value || this.value != filterValue) selfRefresh()
+        // 过滤器发生改变的时候
+        if (value != filterValue) selfRefresh()
+        else if (refreshMe && this.value != filterValue) selfRefresh()
         // 设置值
         this.value = filterValue
         // 通知值发生改变

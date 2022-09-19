@@ -92,7 +92,7 @@ class DateFormItem(
     private fun onDateChanged(date: Date) {
         currentDate = date
         val value = format.format(date)
-        onValueChanged(value)
+        onValueChanged(value, true)
     }
 
     /**

@@ -34,3 +34,13 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.2.1'
     implementation "org.jetbrains.kotlin:kotlin-reflect:1.7.10"
 }
+
+// 发布到Maven库
+apply from: rootProject.file('upload.gradle')
+ext {
+    ARTIFACT_GROUP = 'com.github.raedev'
+    ARTIFACT_ID = 'forms'
+    ARTIFACT_VERSION = '1.0.0'
+    ARTIFACT_DESC = 'Android Froms'
+    ARTIFACT_URL = 'https://github.com/raedev/android-forms'
+}

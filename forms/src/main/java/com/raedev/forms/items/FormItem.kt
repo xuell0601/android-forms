@@ -141,7 +141,7 @@ abstract class FormItem(
         // 通知值发生改变
         listener?.onValueChanged(this, value, this.value)
         // 更新绑定的值
-        dataBinding?.updateValue(this)
+        dataBinding?.setFormValue(this)
     }
 
     /**

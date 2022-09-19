@@ -14,7 +14,7 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 
 /**
- * 表单项Item装饰
+ * 表单项分割线
  * @author RAE
  * @date 2022/09/07
  * @copyright Copyright (c) https://github.com/raedev All rights reserved.

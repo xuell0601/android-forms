@@ -1,4 +1,4 @@
-package com.raedev.forms.internal.binder
+package com.raedev.forms.internal.databinding
 
 import com.raedev.forms.FormField
 import java.lang.reflect.Field

@@ -30,11 +30,6 @@ class GroupTitleFormItem(label: String) : FormItem(label, "GT-${UUID.randomUUID(
         inflater: LayoutInflater,
         parent: ViewGroup,
         layoutId: Int
-    ) : FormViewHolder(inflater, parent, layoutId) {
-
-        override fun getDividerHeight(): Int {
-            return 0
-        }
-    }
+    ) : FormViewHolder(inflater, parent, layoutId)
 
 }

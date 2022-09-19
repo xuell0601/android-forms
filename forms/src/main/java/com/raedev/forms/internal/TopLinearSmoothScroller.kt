@@ -23,7 +23,7 @@ class TopLinearSmoothScroller(context: Context) : LinearSmoothScroller(context) 
      * 滚动到顶部
      */
     override fun getVerticalSnapPreference(): Int {
-        return SNAP_TO_START
+        return SNAP_TO_ANY
     }
 
     /**

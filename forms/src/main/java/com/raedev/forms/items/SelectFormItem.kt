@@ -28,9 +28,11 @@ class SelectFormItem(
     override val formType: Int = FormType.Select.ordinal
     override var hint: String? = null
         get() = if (field == null) "请选择" else field
-
     var dialogTitle: String? = null
         get() = if (field == null) "请选择$label" else field
+
+    /** 字典Key过滤 */
+    var dictFilter: String? = null
 
     /** 是否显示全路径 */
     var enableFullPath: Boolean = true
@@ -49,6 +51,7 @@ class SelectFormItem(
     }
 
     override fun onBindViewHolder(holder: FormViewHolder) {
+        this.provider.filter = this.dictFilter
         val label = this.value?.let {
             if (enableFullPath) {
                 provider.getItem(it)?.let { item -> provider.getFullLabel(item) }
@@ -64,13 +67,14 @@ class SelectFormItem(
         FormSelectDialogFragment.show(manager, this.value, this.dialogTitle).apply {
             this.provider = this@SelectFormItem.provider
             this.listener = this@SelectFormItem
+            this.provider.filter = this@SelectFormItem.dictFilter
         }
     }
 
     override fun onFormSelectChanged(item: FormSelectItem) {
-        debug("当前选择：${provider.getFullLabel(item)}")
-        if (this.value != item.value) {
-            onValueChanged(item.value)
+        val newValue = provider.getItemValue(item.value)
+        if (this.value != newValue) {
+            onValueChanged(newValue)
         }
     }
 }

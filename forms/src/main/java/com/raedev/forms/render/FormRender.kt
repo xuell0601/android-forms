@@ -31,6 +31,7 @@ open class FormRender(
     /** 表单组 */
     protected val formGroup = adapter.formGroup
 
+    /** 平滑滚动，用于校验时候定位到当前表单项 */
     protected val smoothScroller by lazy { TopLinearSmoothScroller(context) }
 
     /**
@@ -135,7 +136,12 @@ open class FormRender(
         label: String, name: String, value: String? = null, required: Boolean = false,
         parent: FormItem? = null
     ): RadioGroupFormItem {
-        return RadioGroupFormItem(label, name, value, required).addToFormGroup(parent)
+        val itemValue = when (value) {
+            "0" -> "false"
+            "1" -> "true"
+            else -> value
+        }
+        return RadioGroupFormItem(label, name, itemValue, required).addToFormGroup(parent)
     }
 
     /**
@@ -154,7 +160,12 @@ open class FormRender(
         label: String, name: String, value: String? = null, required: Boolean = false,
         parent: FormItem? = null
     ): CheckBoxFormItem {
-        return CheckBoxFormItem(label, name, value, required).addToFormGroup(parent)
+        val itemValue = when (value) {
+            "0" -> "false"
+            "1" -> "true"
+            else -> value
+        }
+        return CheckBoxFormItem(label, name, itemValue, required).addToFormGroup(parent)
     }
 
     /**
@@ -174,9 +185,10 @@ open class FormRender(
     open fun addSelect(
         provider: FormDataProvider,
         label: String, name: String, value: String? = null, required: Boolean = false,
-        dialogTitle: String? = null
+        dialogTitle: String? = null,
+        parent: FormItem? = null
     ): SelectFormItem {
-        return SelectFormItem(provider, label, name, value, required).addToFormGroup {
+        return SelectFormItem(provider, label, name, value, required).addToFormGroup(parent) {
             it.dialogTitle = dialogTitle
         }
     }
@@ -203,6 +215,7 @@ open class FormRender(
     override fun render() {
         formGroup.attachRender(this)
     }
+
 
     /**
      * 是否可以刷新列表

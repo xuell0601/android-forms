@@ -26,6 +26,9 @@ open class RadioGroupFormItem(
 
     override var hint: String? = null
 
+    /** 关联的表单名 */
+    var relationFormName: String? = null
+
     init {
         this.required = required
     }

@@ -1,7 +1,10 @@
 package com.raedev.forms
 
+import com.raedev.forms.render.FormRender
+
 /**
- * 表单字段注解
+ * 表单字段注解。
+ * + 注意：注解只能帮助处理一些简单的逻辑，过于复杂的关联关系建议使用[FormRender]处理。
  * @author RAE
  * @date 2022/09/02
  * @copyright Copyright (c) https://github.com/raedev All rights reserved.
@@ -20,19 +23,19 @@ annotation class FormField(
     /** 是否必填 */
     val required: Boolean = false,
 
-    /** 关联字典值 */
-    val dictCode: String = "",
-
     /** 表单类型，默认是文本输入框 */
     val type: FormType = FormType.EditText,
 
     /**
-     * 取值单位
-     */
-    val unit: String = "",
-
-    /**
      * 排序
      */
-    val order: Int = 0
+    val order: Int = 0,
+
+    /** 字典Key */
+    val dict: String = "",
+
+
+    /** 父表单名称 */
+    val parent: String = ""
+
 )

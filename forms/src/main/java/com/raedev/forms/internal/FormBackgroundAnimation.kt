@@ -29,7 +29,7 @@ class FormBackgroundAnimation : Animation.AnimationListener {
     private var isRunning: Boolean = false
 
     init {
-        alphaAnimation.repeatCount = 4
+        alphaAnimation.repeatCount = 5
         alphaAnimation.duration = 150
         alphaAnimation.interpolator = LinearInterpolator()
         alphaAnimation.setAnimationListener(this)
@@ -45,9 +45,6 @@ class FormBackgroundAnimation : Animation.AnimationListener {
 
     override fun onAnimationStart(animation: Animation) {
         isRunning = true
-        animView?.let { view ->
-            view.background = highlightColor
-        }
     }
 
     override fun onAnimationEnd(animation: Animation) {

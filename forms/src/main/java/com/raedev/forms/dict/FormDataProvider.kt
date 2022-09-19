@@ -19,6 +19,9 @@ abstract class FormDataProvider {
     /** 是允许选择父节点 */
     var enableCheckParent: Boolean = false
 
+    /** 过滤前缀的KEY，比如在当前数据集合中过滤只来自于该Key的数据，通过startWith()来匹配 */
+    var filter: String? = null
+
     /**
      * 添加数据集合
      */
@@ -26,6 +29,16 @@ abstract class FormDataProvider {
         val dataList = mutableListOf<FormSelectItem>()
         items.sort().forEach { expandChildItems(dataList, it) }
         dataList.forEach { item -> dataMap[item.value] = item }
+    }
+
+    /**
+     * 基于当前的数据进行数据过滤
+     * @param key 正则表达式的
+     */
+    open fun filter(key: String) {
+        val data = dataMap.filter { it.key.startsWith(key) }
+        dataMap.clear()
+        dataMap.putAll(data)
     }
 
     /**
@@ -44,7 +57,10 @@ abstract class FormDataProvider {
     /**
      * 根据字典值获取子项
      */
-    open fun getItem(value: String): FormSelectItem? = dataMap[value]
+    open fun getItem(value: String): FormSelectItem? {
+        if (filter.isNullOrBlank()) return dataMap[value]
+        return dataMap["${filter}.$value"]
+    }
 
     /**
      * 根据字典值获取标题
@@ -56,14 +72,20 @@ abstract class FormDataProvider {
      * 获取根节点的列表
      */
     protected open fun getRootItems(): List<FormSelectItem> {
-        return dataMap.values.filter { it.parent == null }
+        return dataMap.values.filter {
+            if (filter.isNullOrBlank()) it.parent == null
+            else it.parent == null && it.value.startsWith(filter!!)
+        }
     }
 
     /**
      * 找子节点
      */
     open fun findChildren(item: FormSelectItem): List<FormSelectItem> {
-        return dataMap.values.filter { it.parent == item }
+        return dataMap.values.filter {
+            if (filter.isNullOrBlank()) it.parent == item
+            else it.parent == item && it.value.startsWith(filter!!)
+        }
     }
 
     /**
@@ -125,5 +147,12 @@ abstract class FormDataProvider {
     open fun getFullLabel(item: FormSelectItem): String {
         val parent = getNavigationTitle(item)
         return if (parent.isEmpty()) item.label else "$parent$pathSeparator${item.label}"
+    }
+
+    open fun getItemValue(value: String): String? {
+        return if (filter.isNullOrBlank()) value else {
+            val replaceText = if (filter!!.endsWith(".")) filter!! else "${filter}."
+            value.replace(replaceText, "")
+        }
     }
 }

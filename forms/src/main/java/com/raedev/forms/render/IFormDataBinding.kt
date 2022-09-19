@@ -12,7 +12,7 @@ interface IFormDataBinding {
     /**
      * 绑定实体
      */
-    fun bindEntity(entity: Any)
+    fun bind(entity: Any)
 
     /**
      * 解除绑定
@@ -23,5 +23,16 @@ interface IFormDataBinding {
      * 更新实体值
      * @param formItem 表单项
      */
-    fun updateValue(formItem: FormItem)
+    fun setFormValue(formItem: FormItem)
+
+    /**
+     * 转换为Map对象
+     */
+    fun toMap(): Map<String, String?>
+
+    /**
+     * 转换为对象JSON
+     */
+    fun toJson(): String
+
 }

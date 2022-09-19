@@ -3,10 +3,14 @@ package com.raedev.forms.render
 import android.content.Context
 import androidx.fragment.app.FragmentManager
 import com.raedev.forms.FormGroupAdapter
+import com.raedev.forms.FormInputType
 import com.raedev.forms.FormType
-import com.raedev.forms.internal.binder.FormEntityReference
+import com.raedev.forms.dict.FormDataProvider
+import com.raedev.forms.internal.mapping.FormFieldMap
+import com.raedev.forms.internal.mapping.FormFieldMapping
+import com.raedev.forms.internal.mapping.ReflectionFieldMapping
 import com.raedev.forms.items.FormItem
-import kotlin.reflect.KClass
+import org.json.JSONObject
 
 /**
  * 实体绑定的表单渲染
@@ -20,115 +24,152 @@ open class DataBindingFormRender(
     fragmentManager: FragmentManager? = null
 ) : FormRender(context, adapter, fragmentManager), IFormDataBinding {
 
-    lateinit var entity: Any
-        private set
+    protected val mapping: FormFieldMapping by lazy { ReflectionFieldMapping() }
 
-    /** 解析后的实体 */
-    private lateinit var reference: FormEntityReference
+    /** 表单列表选择数据提供，建议做成字典表，根据指定的字典Key去筛选数据 */
+    var provider: FormDataProvider? = null
 
-    override fun render() {
-        super.render()
-        if (!this::reference.isInitialized) throw NullPointerException("请先对表单实体进行bindEntity(entity)绑定")
-        reference.fieldMap.forEach {
-            val name = it.key
-            val fieldInfo = it.value
-            val label = fieldInfo.formField.value
-            val value = fieldInfo.value
-            // 创建表单
-            val item = createFormItem(
-                fieldInfo.formField.type,
-                label,
-                name,
-                value,
-                fieldInfo.formField.required,
-                fieldInfo.returnType
-            )
-            item.addToFormGroup()
-        }
-    }
-
-    private class AutoType(val labels: List<String>, val types: List<KClass<*>> = emptyList()) {
-        fun match(label: String, type: KClass<*>? = null): Boolean {
-            val count = labels.count { label.contains(it) }
-            if (type != null && count == 0) return types.contains(type)
-            return count > 0
-        }
-    }
-
-    /** 数字类型 */
-    private val numberTypes by lazy {
-        AutoType(
-            listOf("面积", "元", "金额", "费用"),
-            listOf(Int::class, Long::class, Float::class, Double::class)
-        )
-    }
-
-    /** 日期类型 */
-    private val dateTypes by lazy { AutoType(listOf("时间", "日期", "截止")) }
-
-    /** 单选类型 */
-    private val radioTypes by lazy {
-        AutoType(listOf("是否"))
-    }
-
-
-    /**
-     * 创建表单项
-     */
-    private fun createFormItem(
-        type: FormType,
-        label: String,
-        name: String,
-        value: String?,
-        required: Boolean = false,
-        returnType: KClass<*>? = null
-    ): FormItem {
-        return when (type) {
-            FormType.EditText -> addEditText(label, name, value, required)
-            FormType.NumberEditText -> addNumberEditText(label, name, value, required)
-            FormType.RadioGroup -> addRadioGroup(label, name, value, required)
-            else -> autoCreate(label, name, value, required, returnType)
-        }
-    }
-
-    /**
-     * 自动推断类型
-     */
-    protected open fun autoCreate(
-        label: String,
-        name: String,
-        value: String?,
-        required: Boolean = false,
-        returnType: KClass<*>? = null
-    ): FormItem {
-        return when {
-            numberTypes.match(label, returnType) -> {
-                addNumberEditText(label, name, value, required)
-            }
-            radioTypes.match(label, returnType) -> {
-                // TODO 单选类型
-                addNumberEditText(label, name, value, required)
-            }
-            dateTypes.match(label, returnType) -> {
-                // TODO 日期类型
-                addEditText(label, name, value, required)
-            }
-            else -> addEditText(label, name, value, required)
-        }
-    }
-
-
-    override fun bindEntity(entity: Any) {
-        this.entity = entity
-        this.reference = FormEntityReference(entity)
+    override fun bind(entity: Any) {
+        mapping.parse(entity)
     }
 
     override fun unbind() {
-        reference.clean()
+        mapping.clean()
     }
 
-    override fun updateValue(formItem: FormItem) {
-        this.reference.setValue(formItem.name, formItem.value)
+    override fun setFormValue(formItem: FormItem) {
+        mapping.setValue(formItem.name, formItem.value)
     }
+
+
+    override fun render() {
+        super.render()
+        // 分组
+        val groupList = mapping.fields.groupBy { it.group }
+        val groupSize = groupList.size
+        groupList.forEach { map ->
+            val groupName = map.key
+            val items = map.value
+            // 渲染分组标题
+            if (groupSize > 1 && groupName.isNotBlank()) {
+                renderGroupTitle(groupName)
+            }
+            // 排序处理
+            val fields = items.sortedBy { it.order }
+            fields.forEach {
+                renderFormItem(it)
+            }
+        }
+    }
+
+    /**
+     * 渲染表单
+     */
+    protected open fun renderFormItem(item: FormFieldMap): FormItem {
+        return when (item.formType) {
+            FormType.GroupTitle -> renderGroupTitle(item.label)
+            FormType.EditText -> renderEditText(item)
+            FormType.NumberEditText -> renderEditText(item)
+            FormType.RadioGroup -> renderRadioGroup(item)
+            FormType.CheckBox -> renderCheckBox(item)
+            FormType.Date -> renderDate(item)
+            FormType.Select -> renderSelect(item)
+            else -> renderEditText(item)
+        }
+    }
+
+    protected open fun renderRadioGroup(item: FormFieldMap): FormItem {
+        return addRadioGroup(
+            item.label,
+            item.name,
+            item.value?.toString(),
+            item.required,
+            findParent(item.parentName)
+        ).also {
+            when {
+                item.label.contains("性别") -> it.setCheckBoxLabel("男", "女")
+            }
+        }
+    }
+
+
+    protected open fun renderCheckBox(item: FormFieldMap): FormItem {
+        return addCheckBox(
+            item.label,
+            item.name,
+            item.value?.toString(),
+            item.required,
+            findParent(item.parentName)
+        )
+    }
+
+    protected open fun renderDate(item: FormFieldMap): FormItem {
+        return addDate(
+            item.label,
+            item.name,
+            item.value?.toString(),
+            item.required,
+            findParent(item.parentName)
+        )
+    }
+
+    protected open fun renderSelect(item: FormFieldMap): FormItem {
+        val dataProvider = provider ?: throw NullPointerException("请先设置表单选择数据源")
+        return addSelect(
+            dataProvider,
+            item.label,
+            item.name,
+            item.value?.toString(),
+            item.required,
+            parent = findParent(item.parentName)
+        ).also { it.dictFilter = item.dict }
+    }
+
+    protected open fun renderGroupTitle(label: String) = addGroupTitle(label)
+
+    protected open fun renderEditText(item: FormFieldMap): FormItem {
+        val parent = findParent(item.parentName)
+        val inputType = when (item.formType) {
+            // 当为数字类型时候根据Label情景推断具体的输入类型
+            FormType.NumberEditText -> when {
+                item.label.contains("面积") -> FormInputType.Decimal
+                item.label.contains("备注") -> FormInputType.MultiText
+                item.label.contains("手机") -> FormInputType.Phone
+                else -> FormInputType.Number
+            }
+            else -> FormInputType.Text
+        }
+        return addEditTextInternal(
+            inputType,
+            item.label,
+            item.name,
+            item.value?.toString(),
+            item.required,
+            parent
+        )
+    }
+
+    protected open fun findParent(parentName: String?): FormItem? {
+        val parent = parentName ?: return null
+        val item = mapping[parent] ?: return null
+        return renderFormItem(item)
+    }
+
+    override fun toMap(): Map<String, String?> {
+        return mutableMapOf<String, String?>().also { map ->
+            mapping.fields.forEach {
+                map[it.name] = it.value?.toString()
+            }
+        }
+    }
+
+    override fun toJson(): String {
+        val obj = JSONObject()
+        mapping.fields.forEach {
+            obj.put(it.name, it.value)
+        }
+        return obj.toString()
+    }
+
 
 }

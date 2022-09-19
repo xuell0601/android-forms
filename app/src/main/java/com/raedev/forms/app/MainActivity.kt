@@ -7,7 +7,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
-import com.google.gson.Gson
 import com.raedev.forms.FormGroup
 import com.raedev.forms.FormGroupAdapter
 import com.raedev.forms.app.entity.DemoEntity
@@ -49,18 +48,18 @@ class MainActivity : AppCompatActivity() {
         // 初始化表单渲染器
         this.render = DataBindingFormRender(this, adapter, supportFragmentManager)
         // 初始化示例
-//        editTextDemo()
-//        radioDemo()
-//        dateDemo()
-//        selectDemo()
-//        parentAndChildrenDemo()
         dataBindingDemo()
+        editTextDemo()
+        radioDemo()
+        dateDemo()
+        selectDemo()
+        parentAndChildrenDemo()
         otherDemo()
 
 
         // 按钮事件监听
         findViewById<Button>(R.id.btn_entity).setOnClickListener {
-            val text = "实体值：${Gson().toJson(render.entity)}"
+            val text = "实体值：${render.toJson()}"
             Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
             Log.d("rae", text)
         }
@@ -239,15 +238,35 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun dataBindingDemo() {
-        render.addGroupTitle("自动绑定表单演示")
+        render.addGroupTitle("数据绑定示例（按分组展示）")
         val entity = DemoEntity().apply {
-            this.age = 18
+            age = 18
+            sex = 1
+            sfbd = 1
+            birthday = "2022-09-01"
+            workCity = "BJ"
+            lastWorkCity = "GZ"
+            testSelection = ""
         }
-        render.bindEntity(entity)
+        val data = mutableListOf<FormSelectItem>().apply {
+            add(FormSelectItem("北京", "WORK.BJ"))
+            add(FormSelectItem("上海", "WORK.SH"))
+            add(FormSelectItem("广州", "WORK.GZ"))
+            add(FormSelectItem("深圳", "WORK.SZ"))
+            add(FormSelectItem("成都", "WORK.CD"))
+            add(FormSelectItem("测试选项1", "TEST.01"))
+            add(FormSelectItem("测试选项2", "TEST.02"))
+            add(FormSelectItem("测试选项3", "TEST.03"))
+        }
+
+        // 字典表
+        render.provider = SimpleDataProvider(data)
+        render.bind(entity)
         render.render()
     }
 
     private fun otherDemo() {
+        render.addGroupTitle("其他示例")
         for (i in 0 until 10) {
             render.addEditText("测试$i", "test$i")
         }
@@ -263,5 +282,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun String.random(): String {
         return randomName(this)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        render.unbind()
     }
 }

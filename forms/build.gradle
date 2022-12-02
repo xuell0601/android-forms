@@ -36,9 +36,8 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-reflect:1.7.20"
 }
 
-if (new File(project.projectDir, "upload1.gradle").exists()) {
-// 发布到Maven库
-    apply from: rootProject.file('upload.gradle')
+if (new File("upload.gradle").exists()) {
+    apply from: project.file('upload.gradle')
     ext {
         ARTIFACT_GROUP = 'com.github.raedev'
         ARTIFACT_ID = 'forms'

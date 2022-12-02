@@ -45,7 +45,9 @@ open class DataBindingFormRender(
     override fun render() {
         super.render()
         // 分组
-        val groupList = mapping.fields.groupBy { it.group }
+        val groupList = mapping.fields.groupBy { it.group }.toSortedMap { a, b ->
+            a.compareTo(b)
+        }
         val groupSize = groupList.size
         groupList.forEach { map ->
             val groupName = map.key
@@ -57,7 +59,9 @@ open class DataBindingFormRender(
             // 排序处理
             val fields = items.sortedBy { it.order }
             fields.forEach {
-                renderFormItem(it)
+                if (!it.name.equals(it.label, true)) {
+                    renderFormItem(it)
+                }
             }
         }
     }
@@ -65,7 +69,7 @@ open class DataBindingFormRender(
     /**
      * 渲染表单
      */
-    protected open fun renderFormItem(item: FormFieldMap): FormItem {
+    protected open fun renderFormItem(item: FormFieldMap): FormItem? {
         return when (item.formType) {
             FormType.GroupTitle -> renderGroupTitle(item.label)
             FormType.EditText -> renderEditText(item)
@@ -74,7 +78,6 @@ open class DataBindingFormRender(
             FormType.CheckBox -> renderCheckBox(item)
             FormType.Date -> renderDate(item)
             FormType.Select -> renderSelect(item)
-            else -> renderEditText(item)
         }
     }
 

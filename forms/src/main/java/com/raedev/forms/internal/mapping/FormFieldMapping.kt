@@ -64,7 +64,7 @@ abstract class FormFieldMapping {
     /**
      * 将字段转成映射表
      */
-    protected abstract fun convertToMap(field: FieldItem): FormFieldMap
+    protected abstract fun convertToMap(field: FieldItem): FormFieldMap?
 
     // endregion
 
@@ -74,10 +74,9 @@ abstract class FormFieldMapping {
     internal fun <T : Any> parse(entity: T) {
         readKtProperties(entity::class).forEach {
             val name = it.name
-            fieldMapping[name] = convertToMap(it).also { map ->
-                map.objRef = SoftReference(entity)
-            }
-
+            val itemMap = convertToMap(it) ?: return@forEach
+            itemMap.objRef = SoftReference(entity)
+            fieldMapping[name] = itemMap
         }
     }
 

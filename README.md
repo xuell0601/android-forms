@@ -1,5 +1,6 @@
 # android-forms
 
+
 基于`RecyclerView `的Android 动态表单，当默认的表单项无法满足业务需求可自定义扩展。
 
 ## 功能列表
@@ -38,15 +39,21 @@
 
 > 引用库
 
+[![](https://jitpack.io/v/raedev/android-forms.svg)](https://jitpack.io/#raedev/android-forms)
+
 ``` gradle
-repositories {
-	// 仓库地址，如果有自己的仓库可自行编译上传
-	maven { url 'https://maven.raeblog.com/repository/public/' }
+// root build.gradle
+buildscript {
+    repositories {
+        // ...
+        maven { url 'https://jitpack.io' }
+    }
 }
-
-// 表单库
-implementation 'com.github.raedev:forms:1.0.0'
-
+// project build.gradle
+dependencies {
+    // 表单库,TAG取JitPack最新版本
+    implementation 'com.github.raedev:forms:$TAG'
+}
 ```
 
 **详细的使用示例请查看[MainActivity](./app/src/main/java/com/raedev/forms/app/MainActivity.kt)**

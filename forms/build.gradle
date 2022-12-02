@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
+    id 'maven-publish'
 }
 
 android {
@@ -30,17 +31,43 @@ android {
 
 dependencies {
     implementation 'androidx.core:core-ktx:1.8.0'
-    implementation 'androidx.appcompat:appcompat:1.4.2'
+    implementation 'androidx.appcompat:appcompat:1.5.1'
     implementation 'androidx.recyclerview:recyclerview:1.2.1'
-    implementation "org.jetbrains.kotlin:kotlin-reflect:1.7.10"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:1.7.20"
 }
 
+if (new File(project.projectDir, "upload1.gradle").exists()) {
 // 发布到Maven库
-apply from: rootProject.file('upload.gradle')
-ext {
-    ARTIFACT_GROUP = 'com.github.raedev'
-    ARTIFACT_ID = 'forms'
-    ARTIFACT_VERSION = '1.0.0'
-    ARTIFACT_DESC = 'Android Froms'
-    ARTIFACT_URL = 'https://github.com/raedev/android-forms'
+    apply from: rootProject.file('upload.gradle')
+    ext {
+        ARTIFACT_GROUP = 'com.github.raedev'
+        ARTIFACT_ID = 'forms'
+        ARTIFACT_VERSION = '1.0.0'
+        ARTIFACT_DESC = 'Android Froms'
+        ARTIFACT_URL = 'https://github.com/raedev/android-forms'
+    }
+} else {
+    afterEvaluate {
+        publishing {
+            publications {
+                release(MavenPublication) {
+                    from components.release
+                    groupId = 'com.github.raedev'
+                    artifactId = 'forms'
+                    version = '1.0.0'
+                    pom {
+                        name = 'android-forms'
+                        url = 'https://github.com/raedev/android-forms'
+                        developers {
+                            developer {
+                                id = 'RAE'
+                                name = 'RAE'
+                                email = 'raedev@qq.com'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

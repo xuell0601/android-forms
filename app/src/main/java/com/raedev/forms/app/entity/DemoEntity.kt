@@ -42,10 +42,10 @@ class DemoEntity {
     @FormField("上一家工作地点", group = "基本信息", order = 8, type = FormType.Select, dict = "WORK")
     var lastWorkCity: String? = null
 
-    @FormField("房屋面积", group = "房产信息", type = FormType.NumberEditText)
+    @FormField("房屋面积", group = "二、房产信息", type = FormType.NumberEditText)
     var area: String? = null
 
-    @FormField("默认表单")
+    @FormField("默认表单", group = "一、其他信息")
     var longText: String? = null
 
 }

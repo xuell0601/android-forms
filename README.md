@@ -1,4 +1,4 @@
-# Android 表单库
+# Android Kotlin 表单库
 
 基于`RecyclerView `的Android 动态表单，当默认的表单项无法满足业务需求可自定义扩展。
 
@@ -47,7 +47,7 @@ buildscript {
 }
 dependencies {
     // $TAG取JitPack最新版本
-    implementation 'com.github.raedev:forms:$TAG'
+	implementation 'com.github.raedev:android-forms:Tag'
 }
 ```
 
